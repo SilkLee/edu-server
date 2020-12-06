@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.silklee.video.dao.VideoMapper">
+    <cache eviction="LRU" flushInterval="100000" readOnly="true" size="1024"/>
+
+    <sql id="base_video_fields">
+        id, title, summary, cover_img, price, create_time, point
+    </sql>
+
+    <select id="selectById" resultType="Video">
+        select <include refid="base_video_fields"/> from video where id = #{video_id}
+    </select>
+
+    <select id="listVideo" resultType="Video">
+        select <include refid="base_video_fields"/> from video
+    </select>
+
+    <select id="showVideoListByTitleAndPoint" resultType="Video">
+        select * from video where point = #{point} and title like concat('%', #{title},'%')
+    </select>
+
+    <select id="listBanner" resultType="VideoBanner">
+        select * from video_banner order by weight asc
+    </select>
+
+    <resultMap id="VideoDetailResultMap" type="Video">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+
+        <collection property="chapterList" ofType="Chapter">
+            <id column="chapter_id" property="id"/>
+            <result column="chapter_title" property="title"/>
+
+            <collection property="episodeList" ofType="Episode">
+                <id column="episode_id" property="id"/>
+                <result column="episode_title" property="title"/>
+            </collection>
+        </collection>
+    </resultMap>
+    <select id="findDetailById" resultMap="VideoDetailResultMap">
+        select
+        v.id, v.title,
+        c.id as chapter_id, c.title as chapter_title,
+        e.id as episode_id, e.title as episode_title
+        from video v
+        left join chapter c on v.id = c.video_id
+        left join episode e on c.id = e.chapter_id
+        where v.id = #{video_id}
+    </select>
+    
+    <insert id="addVideo" parameterType="VideoDTO" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO `video` ( `title`, `summary`, `cover_img`, `price`, `create_time`, `point`) VALUES
+         (#{title}, #{summary},
+         #{coverImg}, #{price},
+         #{createTime}, #{point})
+    </insert>
+
+    <insert id="addBatch" parameterType="VideoDTO" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO `video` ( `title`, `summary`, `cover_img`, `price`, `create_time`, `point`) VALUES
+        <foreach collection="list" item="videoDTO" separator=",">
+            (#{videoDTO.title}, #{videoDTO.summary},
+            #{videoDTO.coverImg}, #{videoDTO.price},
+            #{videoDTO.createTime}, #{videoDTO.point})
+        </foreach>
+    </insert>
+
+    <update id="updateVideo" parameterType="Video">
+        update video
+        <trim prefix="set" suffixOverrides=",">
+            <if test="title != null">title = #{title},</if>
+            <if test="summary != null">summary = #{summary},</if>
+            <if test="coverImg != null">cover_img = #{coverImg},</if>
+            <if test="price != 0">price = #{price},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <!-- 特别注意： ⼀定要看pojo类⾥⾯的是基本数据类型，还是包装数据类型-->
+            <if test="point != null">point = #{point}</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteVideo" parameterType="java.util.Map">
+        delete from video where id <![CDATA[ >= ]]> #{id} and price <![CDATA[ <= ]]> #{price}
+    </delete>
+</mapper>

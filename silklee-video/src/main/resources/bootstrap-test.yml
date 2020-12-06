@@ -1,0 +1,11 @@
+#  bootstrap-prod.yml
+spring:
+  cloud:
+    nacos:
+      discovery:
+        namespace: ahb
+        server-addr: 10.100.40.69:8848
+      config:
+        namespace: ${spring.cloud.nacos.discovery.namespace}
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        file-extension: yaml

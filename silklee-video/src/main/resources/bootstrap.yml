@@ -1,0 +1,10 @@
+# 服务端口
+server:
+  port: 8010
+
+# spring 设置
+spring:
+  application:
+    name: silklee-video
+  profiles:
+    active: local

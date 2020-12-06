@@ -1,0 +1,13 @@
+#  bootstrap-dev.yml
+spring:
+  cloud:
+    nacos:
+      discovery:
+        namespace: ahb-dev
+        server-addr: 10.100.40.69:8848
+        group: dev
+      config:
+        namespace: ${spring.cloud.nacos.discovery.namespace}
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        group: ${spring.cloud.nacos.discovery.group}
+        file-extension: yaml
